@@ -23,8 +23,10 @@ use yii\helpers\StringHelper;
  */
 class Generator extends \yii\gii\Generator
 {
+    public $moduleNS;
     public $moduleClass;
     public $moduleID;
+    private $moduleNSClass;
 
 
     /**
@@ -32,7 +34,7 @@ class Generator extends \yii\gii\Generator
      */
     public function getName()
     {
-        return 'Module Generator Alius';
+        return 'Module Generator';
     }
 
     /**
@@ -40,7 +42,7 @@ class Generator extends \yii\gii\Generator
      */
     public function getDescription()
     {
-        return 'This generator helps you to generate the skeleton code needed by a Yii module.';
+        return 'This generator helps you to generate the skeleton code needed by a Madrapur module.';
     }
 
     /**
@@ -49,8 +51,8 @@ class Generator extends \yii\gii\Generator
     public function rules()
     {
         return array_merge(parent::rules(), [
-            [['moduleID', 'moduleClass'], 'filter', 'filter' => 'trim'],
-            [['moduleID', 'moduleClass'], 'required'],
+            [['moduleID', 'moduleClass', 'moduleNS'], 'filter', 'filter' => 'trim'],
+            [['moduleID', 'moduleClass', 'moduleNS'], 'required'],
             [['moduleID'], 'match', 'pattern' => '/^[\w\\-]+$/', 'message' => 'Only word characters and dashes are allowed.'],
             [['moduleClass'], 'match', 'pattern' => '/^[\w\\\\]*$/', 'message' => 'Only word characters and backslashes are allowed.'],
             [['moduleClass'], 'validateModuleClass'],
@@ -63,6 +65,7 @@ class Generator extends \yii\gii\Generator
     public function attributeLabels()
     {
         return [
+            'moduleNS' => 'Module Namespace',
             'moduleID' => 'Module ID',
             'moduleClass' => 'Module Class',
         ];
@@ -74,6 +77,7 @@ class Generator extends \yii\gii\Generator
     public function hints()
     {
         return [
+            'moduleNS' => 'This refers to the namespace of the module, e.g., <code>backend\modules</code>.',
             'moduleID' => 'This refers to the ID of the module, e.g., <code>admin</code>.',
             'moduleClass' => 'This is the fully qualified class name of the module, e.g., <code>app\modules\admin\Module</code>.',
         ];
@@ -99,7 +103,7 @@ EOD;
     ......
     'modules' => [
         '{$this->moduleID}' => [
-            'class' => '{$this->moduleClass}',
+            'class' => {$this->moduleNSClass}::class,
         ],
     ],
     ......
@@ -122,21 +126,65 @@ EOD;
     public function generate()
     {
         $files = [];
-        $modulePath = $this->getModulePath();
-        $files[] = new CodeFile(
-            $modulePath . '/' . StringHelper::basename($this->moduleClass) . '.php',
-            $this->render("module.php")
-        );
-        $files[] = new CodeFile(
-            $modulePath . '/controllers/DefaultController.php',
-            $this->render("controller.php")
-        );
-        $files[] = new CodeFile(
-            $modulePath . '/views/default/index.php',
-            $this->render("view.php")
+        $this->setModuleNSClass();
+
+        $files = array_merge(
+            $files,
+            $this->createModuleFile(),
+            $this->createModelFiles(),
+            $this->createControllerFiles(),
+            $this->createViewFiles()
         );
 
         return $files;
+    }
+
+    public function createModuleFile() {
+        return [
+            new CodeFile(
+                $this->getModulePath() .'/' . $this->moduleID . '/Module.php',
+                $this->render("module.php")
+            )
+        ];
+    }
+
+    public function createControllerFiles() {        
+        return [
+            new CodeFile(
+                $this->getModulePath() .'/' . $this->moduleID . '/controllers/DefaultController.php',
+                $this->render("controller.php")
+            ),
+            new CodeFile(
+                $this->getModulePath() .'/' . $this->moduleID . '/controllers/' . $this->moduleClass . 'Controller.php',
+                $this->render("specialController.php")
+            ),
+        ];
+    }
+
+    public function createModelFiles() {
+        return [
+            new CodeFile(
+                $this->getModulePath() .'/' . $this->moduleID . '/models/' . $this->moduleClass . '.php',
+                $this->render("model.php")
+            ),
+        ];
+    }
+
+    public function createViewFiles() {
+        return [
+            new CodeFile(
+                $this->getModulePath() .'/' . $this->moduleID . '/views/default/index.php',
+                $this->render("view.php")
+            ),
+            new CodeFile(
+                $this->getModulePath() .'/' . $this->moduleID . '/views/' . $this->moduleID . '/index.php',
+                $this->render("view.php")
+            ),
+            new CodeFile(
+                $this->getModulePath() .'/' . $this->moduleID . '/views/' . $this->moduleID . '/admin.php',
+                $this->render("view.php")
+            ),
+        ];
     }
 
     /**
@@ -144,10 +192,12 @@ EOD;
      */
     public function validateModuleClass()
     {
-        if (strpos($this->moduleClass, '\\') === false || Yii::getAlias('@' . str_replace('\\', '/', $this->moduleClass), false) === false) {
+        if (!$this->moduleNSClass) $this->setModuleNSClass();
+
+        if (strpos($this->moduleNSClass, '\\') === false || Yii::getAlias('@' . str_replace('\\', '/', $this->moduleNSClass), false) === false) {
             $this->addError('moduleClass', 'Module class must be properly namespaced.');
         }
-        if (empty($this->moduleClass) || substr_compare($this->moduleClass, '\\', -1, 1) === 0) {
+        if (empty($this->moduleNSClass) || substr_compare($this->moduleNSClass, '\\', -1, 1) === 0) {
             $this->addError('moduleClass', 'Module class name must not be empty. Please enter a fully qualified class name. e.g. "app\\modules\\admin\\Module".');
         }
     }
@@ -157,7 +207,10 @@ EOD;
      */
     public function getModulePath()
     {
-        return Yii::getAlias('@' . str_replace('\\', '/', substr($this->moduleClass, 0, strrpos($this->moduleClass, '\\'))));
+        if (!$this->moduleNSClass) $this->setModuleNSClass();
+
+        //echo Yii::getAlias('@' . str_replace('\\', '/', substr($this->moduleNSClass, 0, strrpos($this->moduleNSClass, '\\'))));
+        return Yii::getAlias('@' . str_replace('\\', '/', substr($this->moduleNSClass, 0, strrpos($this->moduleNSClass, '\\'))));
     }
 
     /**
@@ -165,6 +218,28 @@ EOD;
      */
     public function getControllerNamespace()
     {
-        return substr($this->moduleClass, 0, strrpos($this->moduleClass, '\\')) . '\controllers';
+        if (!$this->moduleNSClass) $this->setModuleNSClass();
+
+        return $this->moduleNSClass . '\controllers';
+    }
+
+    /**
+     * @return string the model namespace of the module.
+     */
+    public function getModelNamespace()
+    {
+        if (!$this->moduleNSClass) $this->setModuleNSClass();
+
+        return $this->moduleNSClass . '\models';
+    }
+
+    public function setModuleNSClass() {
+        if (!strpos($this->moduleNS, "\\modules")) $this->moduleNS .= "\\modules";;
+
+        $this->moduleNSClass = $this->moduleNS . '\\' . $this->moduleClass;
+    }
+
+    public function getModuleNSClass() {
+        return $this->moduleNSClass;
     }
 }
