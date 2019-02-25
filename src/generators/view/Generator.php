@@ -15,6 +15,7 @@ class Generator extends \yii\gii\Generator {
     public $viewName;
     public $moduleName;
     public $moduleNS;
+    public $reactClassName;
     public $adminNeeded;
 
     /**
@@ -36,8 +37,8 @@ class Generator extends \yii\gii\Generator {
      */
     public function rules() {
         return array_merge(parent::rules(), [
-            [['viewName', 'moduleNS', 'moduleName', 'adminNeeded'], 'filter', 'filter' => 'trim'],
-            [['viewName', 'moduleNS', 'moduleName'], 'required'],
+            [['viewName', 'moduleNS', 'moduleName', 'adminNeeded', 'reactClassName'], 'filter', 'filter' => 'trim'],
+            [['viewName', 'moduleNS', 'moduleName', 'reactClassName'], 'required'],
             [['viewName'], 'match', 'pattern' => '/^[\w\\-]+$/', 'message' => 'Only word characters and dashes are allowed.'],
             [['viewName', ], 'match', 'pattern' => '/^[\w\\\\]*$/', 'message' => 'Only word characters and backslashes are allowed.'],
         ]);
@@ -51,6 +52,7 @@ class Generator extends \yii\gii\Generator {
             'viewName' => 'View Name',
             'moduleNS' => 'View Namespace',
             'moduleName' => 'Module Name',
+            'reactClassName' => 'React Class Name',
             'adminNeeded' => 'Generate admin view?',
         ];
     }

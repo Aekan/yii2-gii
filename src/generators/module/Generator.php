@@ -209,7 +209,7 @@ EOD;
     {
         if (!$this->moduleNSClass) $this->setModuleNSClass();
 
-        echo Yii::getAlias('@' . str_replace('\\', '/', substr($this->moduleNSClass, 0, strrpos($this->moduleNSClass, '\\'))));
+        //echo Yii::getAlias('@' . str_replace('\\', '/', substr($this->moduleNSClass, 0, strrpos($this->moduleNSClass, '\\'))));
         return Yii::getAlias('@' . str_replace('\\', '/', substr($this->moduleNSClass, 0, strrpos($this->moduleNSClass, '\\'))));
     }
 

@@ -15,6 +15,8 @@
 
         echo $form->field($generator, 'viewName');
 
+        echo $form->field($generator, 'reactClassName');
+
         echo $form->field($generator, 'adminNeeded')
                 ->checkbox([
                     'value' => true,
