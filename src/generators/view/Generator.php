@@ -12,7 +12,10 @@ use yii\helpers\StringHelper;
  * @author Péter Alius <peter.alius92@gmail.com>
  */
 class Generator extends \yii\gii\Generator {
+    public $viewName;
+    public $moduleName;
     public $moduleNS;
+    public $adminNeeded;
 
     /**
      * {@inheritdoc}
@@ -33,10 +36,10 @@ class Generator extends \yii\gii\Generator {
      */
     public function rules() {
         return array_merge(parent::rules(), [
-            [['viewName'], 'filter', 'filter' => 'trim'],
-            [['viewName'], 'required'],
+            [['viewName', 'moduleNS', 'moduleName', 'adminNeeded'], 'filter', 'filter' => 'trim'],
+            [['viewName', 'moduleNS', 'moduleName'], 'required'],
             [['viewName'], 'match', 'pattern' => '/^[\w\\-]+$/', 'message' => 'Only word characters and dashes are allowed.'],
-            [['viewName'], 'match', 'pattern' => '/^[\w\\\\]*$/', 'message' => 'Only word characters and backslashes are allowed.'],
+            [['viewName', ], 'match', 'pattern' => '/^[\w\\\\]*$/', 'message' => 'Only word characters and backslashes are allowed.'],
         ]);
     }
 
@@ -46,6 +49,9 @@ class Generator extends \yii\gii\Generator {
     public function attributeLabels() {
         return [
             'viewName' => 'View Name',
+            'moduleNS' => 'View Namespace',
+            'moduleName' => 'Module Name',
+            'adminNeeded' => 'Generate admin view?',
         ];
     }
 
@@ -54,7 +60,10 @@ class Generator extends \yii\gii\Generator {
      */
     public function hints() {
         return [
-            'viewName' => 'This refers to the name of the module, e.g., <code>MyView</code>.',
+            'viewName' => 'This refers to the name of the view, e.g., <code>MyView</code>.',
+            'moduleName' => 'This refers to the name of the module, e.g., <code>MyModule</code>.',
+            'moduleNS' => 'This refers to the namespace module class, e.g., <code>backend</code>.',
+            'adminNeeded' => 'Set to <code>true</code> if an admin view is necessary.',
         ];
     }
 
@@ -64,17 +73,11 @@ class Generator extends \yii\gii\Generator {
     public function successMessage() {
         $output = <<<EOD
 <p>The view has been generated successfully.</p>
-<p>To access the view, you need to add this to your application configuration:</p>
+<p>To access the view, you need to do absolutely nothing, just navigate to the module!</p>
 EOD;
         $code = <<<EOD
 <?php
-    ......
-    'modules' => [
-        '{$this->moduleID}' => [
-            'class' => {$this->moduleNSClass}::class,
-        ],
-    ],
-    ......
+
 EOD;
 
         return $output . '<pre>' . highlight_string($code, true) . '</pre>';
@@ -95,18 +98,33 @@ EOD;
 
         $files = array_merge(
             $files,
-            $this->createViewFiles()
+            $this->createViewFile()
         );
+
+        if ($this->adminNeeded) {
+            $files = array_merge(
+                $files,
+                $this->createViewFile('admin')
+            );  
+        }
 
         return $files;
     }
 
-    public function createViewFiles() {
+    public function createViewFile($fileName = 'index') {
         return [
             new CodeFile(
-                $this->getModulePath() .'/' . $this->moduleID . '/views/default/index.php',
+                $this->getModuleNSClass() . '/views/' . $this->viewName . '/' . $fileName . '.php',
                 $this->render("react.php")
             ),
         ];
     }
+
+    public function getModuleNS() {
+        return Yii::getAlias('@' . $this->moduleNS);
+    }
+
+    public function getModuleNSClass() {
+        return $this->getModuleNS() . "\\modules\\" . $this->moduleName;
+    } 
 }
