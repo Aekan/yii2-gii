@@ -19,7 +19,7 @@ namespace <?= $ns ?>;
 /**
  * <?= $generator->moduleID ?> module definition class
  */
-class <?= $className ?> extends \yii\base\Module
+class <?= $generator->moduleClass ?> extends \yii\base\Module
 {
     /**
      * {@inheritdoc}

@@ -142,7 +142,7 @@ EOD;
     public function createModuleFile() {
         return [
             new CodeFile(
-                $this->getModulePath() .'/' . $this->moduleID . '/Module.php',
+                $this->getModulePath() .'/' . $this->moduleClass . '/Module.php',
                 $this->render("module.php")
             )
         ];
@@ -151,11 +151,11 @@ EOD;
     public function createControllerFiles() {        
         return [
             new CodeFile(
-                $this->getModulePath() .'/' . $this->moduleID . '/controllers/DefaultController.php',
+                $this->getModulePath() .'/' . $this->moduleClass . '/controllers/DefaultController.php',
                 $this->render("controller.php")
             ),
             new CodeFile(
-                $this->getModulePath() .'/' . $this->moduleID . '/controllers/' . $this->moduleClass . 'Controller.php',
+                $this->getModulePath() .'/' . $this->moduleClass . '/controllers/' . $this->moduleClass . 'Controller.php',
                 $this->render("specialController.php")
             ),
         ];
@@ -164,7 +164,7 @@ EOD;
     public function createModelFiles() {
         return [
             new CodeFile(
-                $this->getModulePath() .'/' . $this->moduleID . '/models/' . $this->moduleClass . '.php',
+                $this->getModulePath() .'/' . $this->moduleClass . '/models/' . $this->moduleClass . '.php',
                 $this->render("model.php")
             ),
         ];
@@ -173,15 +173,15 @@ EOD;
     public function createViewFiles() {
         return [
             new CodeFile(
-                $this->getModulePath() .'/' . $this->moduleID . '/views/default/index.php',
+                $this->getModulePath() .'/' . $this->moduleClass . '/views/default/index.php',
                 $this->render("view.php")
             ),
             new CodeFile(
-                $this->getModulePath() .'/' . $this->moduleID . '/views/' . $this->moduleID . '/index.php',
+                $this->getModulePath() .'/' . $this->moduleClass . '/views/' . $this->moduleID . '/index.php',
                 $this->render("view.php")
             ),
             new CodeFile(
-                $this->getModulePath() .'/' . $this->moduleID . '/views/' . $this->moduleID . '/admin.php',
+                $this->getModulePath() .'/' . $this->moduleClass . '/views/' . $this->moduleID . '/admin.php',
                 $this->render("view.php")
             ),
         ];
