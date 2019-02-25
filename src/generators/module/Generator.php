@@ -102,8 +102,8 @@ EOD;
 <?php
     ......
     'modules' => [
-        '{$this->moduleID}' => [
-            'class' => {$this->moduleNSClass}::class,
+        '{$this->moduleClass}' => [
+            'class' => {$this->moduleNSClass}\Module::class,
         ],
     ],
     ......

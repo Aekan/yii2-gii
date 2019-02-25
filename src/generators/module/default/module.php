@@ -14,13 +14,12 @@ $className = substr($className, $pos + 1);
 echo "<?php\n";
 ?>
 
-namespace <?= $ns ?>;
+namespace <?= $generator->getModuleNSClass() ?>;
 
 /**
  * <?= $generator->moduleID ?> module definition class
  */
-class <?= $generator->moduleClass ?> extends \yii\base\Module
-{
+class Module extends \yii\base\Module {
     /**
      * {@inheritdoc}
      */
@@ -29,8 +28,7 @@ class <?= $generator->moduleClass ?> extends \yii\base\Module
     /**
      * {@inheritdoc}
      */
-    public function init()
-    {
+    public function init() {
         parent::init();
 
         // custom initialization code goes here
